@@ -6,6 +6,7 @@ The `matthewtoghill-claude-plugins` marketplace: Claude Code mods (plugins of fu
 | --- | --- |
 | [next-steps](./next-steps) | After each turn, Haiku suggests 1-4 next steps in a band above the prompt. Type a number (CLI) or click (Desktop) to toggle a step's prompt into your draft; `0` dismisses. Nothing is sent until you press Enter. |
 | [session-replay](./session-replay) | `/replay` steps through, replays and restores every file change made in the session, grouped by prompt. |
+| [test-watch](./test-watch) | Once Claude edits files, a band above the prompt counts them and offers **Run tests** (`r`). Nothing runs until you press it. Shows pass/fail, and on a failure **Fix** (`f`) puts the failing output into your draft. Vitest and Jest run only the tests related to the changed files, and **Run all** (`a`) runs the whole suite. Other projects (npm test, cargo, go, dotnet, pytest) always run the whole suite. Set the `command` option to use your own test command. |
 
 ## Install
 
@@ -13,6 +14,7 @@ The `matthewtoghill-claude-plugins` marketplace: Claude Code mods (plugins of fu
 claude plugin marketplace add matthewtoghill/claude-plugins
 claude plugin install next-steps@matthewtoghill-claude-plugins
 claude plugin install session-replay@matthewtoghill-claude-plugins
+claude plugin install test-watch@matthewtoghill-claude-plugins
 ```
 
 Update with `claude plugin update <name>@matthewtoghill-claude-plugins`.

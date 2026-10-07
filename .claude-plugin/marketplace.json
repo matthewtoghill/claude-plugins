@@ -1,7 +1,7 @@
 {
   "name": "matthewtoghill-claude-plugins",
   "owner": { "name": "Matthew Toghill" },
-  "description": "Claude Code mods by Matthew Toghill: next-step suggestions and session file-change replay",
+  "description": "Claude Code mods by Matthew Toghill: next-step suggestions, session file-change replay and on-demand test runs",
   "plugins": [
     {
       "name": "next-steps",
@@ -12,6 +12,11 @@
       "name": "session-replay",
       "source": "./session-replay",
       "description": "Step through, replay and restore every file change made in this session, grouped by prompt"
+    },
+    {
+      "name": "test-watch",
+      "source": "./test-watch",
+      "description": "A band above the prompt tracks files changed since the last test run; run the tests on demand and draft a fix prompt from the failures"
     }
   ]
 }

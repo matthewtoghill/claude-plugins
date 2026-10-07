@@ -1,0 +1,17 @@
+{
+  "name": "test-watch",
+  "version": "0.1.0",
+  "description": "A band above the prompt tracks files changed since the last test run; run the tests on demand and draft a fix prompt from the failures",
+  "author": { "name": "Matthew Toghill" },
+  "homepage": "https://github.com/matthewtoghill/claude-plugins/tree/main/test-watch",
+  "repository": "https://github.com/matthewtoghill/claude-plugins",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "command": {
+      "type": "string",
+      "title": "Test command",
+      "description": "Shell command that runs the tests. Empty: detected from the project (vitest, jest, npm test, cargo, go, dotnet, pytest).",
+      "default": ""
+    }
+  }
+}
