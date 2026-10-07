@@ -1,6 +1,6 @@
 {
   "name": "session-replay",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Step through, replay and restore every file change made in this session, grouped by prompt",
   "author": { "name": "Matthew Toghill" },
   "homepage": "https://github.com/matthewtoghill/claude-plugins/tree/main/session-replay",

@@ -106,6 +106,18 @@ export function patch(diffs: FileDiff[]): string {
     .join('')
 }
 
+/** One side of a diff's hunks as plain code: context plus '-' lines (old) or '+' lines (new), markers dropped. */
+export function side(d: FileDiff, which: 'old' | 'new'): string {
+  const drop = which === 'old' ? '+' : '-'
+  return d.hunks.map(h => h.lines.filter(l => l[0] !== drop).map(l => l.slice(1)).join('\n')).join('\n…\n') + '\n'
+}
+
+/** `side` for every file; with more than one, each gets a `// path` header. */
+export function sides(diffs: FileDiff[], which: 'old' | 'new'): string {
+  if (diffs.length === 1) return side(diffs[0], which)
+  return diffs.map(d => `// ${d.file}\n${side(d, which)}`).join('\n')
+}
+
 /** Rebuilds a file's old text from its new text and the hunks that produced it (a Bash edit's record). */
 export function unapply(after: string, hs: { newStart: number; newLines: number; lines: string[] }[]): string {
   const now = after.split('\n')

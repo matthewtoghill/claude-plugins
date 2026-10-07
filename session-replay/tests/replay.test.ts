@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { fileDiff, unapply } from '../hooks/diff'
+import { fileDiff, side, unapply } from '../hooks/diff'
 
 const PANE_PROPS = {
   title: 'Replay',
@@ -26,6 +26,8 @@ test('diff helpers: hunk counts and Bash un-apply round trip', async () => {
   expect(unapply(after, hs)).toBe(before)
   expect(fileDiff('x', 'same', 'same')).toBe(undefined)
   expect(fileDiff('new.txt', null, 'one\ntwo\n')!.add).toBe(2)
+  expect(side(d, 'old')).toBe('a\nb\nc\nd\ne\nf\ng\nh\n')
+  expect(side(d, 'new')).toBe(after)
 })
 
 for (const surface of ['terminal', 'desktop'] as const) {

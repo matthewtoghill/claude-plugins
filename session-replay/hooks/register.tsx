@@ -1,8 +1,8 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register, Timer } from 'claude-code'
+import type { EngineInterface, Register, Timer, UiPressArgument } from 'claude-code'
 
 import type { Change, Mode, Prompt, Step } from '../types'
-import { clip, fileDiff, patch, unapply } from './diff'
+import { clip, fileDiff, patch, side, sides, unapply } from './diff'
 import type { FileDiff } from './diff'
 
 const PANE = 'session-replay'
@@ -29,6 +29,11 @@ async function record($: EngineInterface, id: string | undefined, tool: string, 
   if (!list.length) await update($, prompts, l => (l.length ? l : [{ text: '(before first prompt)' }]))
   const prompt = Math.max(0, (await read($, prompts)).length - 1)
   await update($, changes, l => [...l, { id, prompt, tool, file, before, after }])
+}
+
+async function copy($: EngineInterface, text: string, what: string, surface: UiPressArgument['surface']) {
+  const r = await $.ui.copy({ text, surface })
+  $.ui.toast(r.isCopied ? `Copied ${what}.` : `Copy failed: ${r.reason}`)
 }
 
 async function readOrNull($: EngineInterface, file: string): Promise<string | null> {
@@ -249,13 +254,15 @@ export const register: Register = on => {
           <Button
             key="copy"
             hotkey="y"
-            onPress={press =>
-              void $.ui.copy({ text: patch(diffs), surface: press.surface }).then(r =>
-                $.ui.toast(r.isCopied ? `Copied patch for ${diffs.length} file(s).` : `Copy failed: ${r.reason}`),
-              )
-            }
+            onPress={press => void copy($, patch(diffs), `patch for ${diffs.length} file(s)`, press.surface)}
           >
             Copy patch
+          </Button>
+          <Button key="copy-old" hotkey="o" onPress={press => void copy($, sides(diffs, 'old'), `old code for ${diffs.length} file(s)`, press.surface)}>
+            Copy old
+          </Button>
+          <Button key="copy-new" hotkey="w" onPress={press => void copy($, sides(diffs, 'new'), `new code for ${diffs.length} file(s)`, press.surface)}>
+            Copy new
           </Button>
           <Button key="restore" hotkey="r" onPress={() => void update($, confirming, () => true)}>
             Restore…
@@ -304,7 +311,15 @@ export const register: Register = on => {
                 {d.file} <Text color="green">+{d.add}</Text> <Text color="red">−{d.del}</Text>
               </Text>
               <Code format="diff" source={source} path={d.file} />
-              {isCut && <Text dimColor>… diff cut for display; Copy patch has all of it.</Text>}
+              {isCut && <Text dimColor>… diff cut for display; Copy patch / old / new have all of it.</Text>}
+              <Box flexDirection="row" gap={1}>
+                <Button key={`old-${d.file}`} plain dimColor onPress={press => void copy($, side(d, 'old'), `old code of ${base(d.file)}`, press.surface)}>
+                  Copy old
+                </Button>
+                <Button key={`new-${d.file}`} plain dimColor onPress={press => void copy($, side(d, 'new'), `new code of ${base(d.file)}`, press.surface)}>
+                  Copy new
+                </Button>
+              </Box>
             </Box>
           )
         })}
