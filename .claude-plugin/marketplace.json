@@ -1,0 +1,17 @@
+{
+  "name": "matthewtoghill-plugins",
+  "owner": { "name": "Matthew Toghill" },
+  "description": "Claude Code mods by Matthew Toghill: next-step suggestions and session file-change replay",
+  "plugins": [
+    {
+      "name": "next-steps",
+      "source": "./next-steps",
+      "description": "After each turn, Haiku suggests 1-4 next steps above the prompt; picking one drafts its prompt without sending it"
+    },
+    {
+      "name": "session-replay",
+      "source": "./session-replay",
+      "description": "Step through, replay and restore every file change made in this session, grouped by prompt"
+    }
+  ]
+}
