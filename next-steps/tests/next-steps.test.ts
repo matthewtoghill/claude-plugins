@@ -17,7 +17,7 @@ function engine(on: On, box: { text: string }) {
   const asked: { model: string; prompt: string }[] = []
   on('turn.start', ($, e) => ({ turnId: e.turnId }))
   on('turn.complete', ($, e) => ({ text: e.answer }))
-  on('ui.render', ($, e) => $.ui.resolve(e).Box({}))
+  on('ui.render', ($, e) => $.ui.resolve(e).Box({ key: 'below' }))
   on('model.complete', ($, e) => {
     asked.push({ model: e.model, prompt: e.prompt })
     return { value: { isAnswered: true, text: REPLY, usage: USAGE } }
@@ -44,6 +44,8 @@ for (const surface of ['terminal', 'desktop'] as const) {
 
     const ui = await $.ui.mount({ plugin: 'next-steps', surface, component: 'AbovePrompt', props: BAND })
     box.text = 'Also:'
+    // The band draws above what the plugins below it draw, not instead of it.
+    expect(await ui.find({ key: 'below' })).not.toBe(undefined)
 
     await ui.press({ key: 'step-1' })
     expect(box.text).toBe('Also:\nRun the test suite and fix failures')

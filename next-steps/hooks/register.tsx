@@ -85,28 +85,33 @@ export const register: Register = on => {
       await update($, band, b => ({ ...b, selected: picked, drafted: draft.drafted }))
     }
 
+    // Draw beside whatever the plugins below draw, so other bands still show.
+    const below = await next(e)
     return (
-      <Box flexDirection={plain ? 'column' : 'row'} flexWrap="wrap" columnGap={1}>
-        <Text dimColor>Next steps{plain ? ' (number toggles; ctrl+x tab to pick more once you have typed)' : ''}</Text>
-        {suggestions.map((s, i) => (
+      <Box flexDirection="column">
+        <Box flexDirection={plain ? 'column' : 'row'} flexWrap="wrap" columnGap={1}>
+          <Text dimColor>Next steps{plain ? ' (number toggles; ctrl+x tab to pick more once you have typed)' : ''}</Text>
+          {suggestions.map((s, i) => (
+            <Button
+              key={`step-${i + 1}`}
+              hotkey={String(i + 1)}
+              plain={plain}
+              variant={selected.includes(i) ? 'primary' : undefined}
+              label={(selected.includes(i) ? '✓ ' : '') + s.label}
+              onPress={() => toggle(i)}
+            />
+          ))}
           <Button
-            key={`step-${i + 1}`}
-            hotkey={String(i + 1)}
+            key="dismiss"
+            hotkey="0"
             plain={plain}
-            variant={selected.includes(i) ? 'primary' : undefined}
-            label={(selected.includes(i) ? '✓ ' : '') + s.label}
-            onPress={() => toggle(i)}
+            role="dismiss"
+            dimColor
+            label="Dismiss"
+            onPress={() => update($, band, () => EMPTY)}
           />
-        ))}
-        <Button
-          key="dismiss"
-          hotkey="0"
-          plain={plain}
-          role="dismiss"
-          dimColor
-          label="Dismiss"
-          onPress={() => update($, band, () => EMPTY)}
-        />
+        </Box>
+        {below}
       </Box>
     )
   })

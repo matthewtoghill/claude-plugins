@@ -1,6 +1,6 @@
 {
   "name": "next-steps",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "After each turn, Haiku suggests 1-4 next steps above the prompt; picking one drafts its prompt without sending it",
   "author": { "name": "Matthew Toghill" },
   "homepage": "https://github.com/matthewtoghill/claude-plugins/tree/main/next-steps",
