@@ -1,5 +1,5 @@
 {
-  "name": "matthewtoghill-plugins",
+  "name": "matthewtoghill-claude-plugins",
   "owner": { "name": "Matthew Toghill" },
   "description": "Claude Code mods by Matthew Toghill: next-step suggestions and session file-change replay",
   "plugins": [
