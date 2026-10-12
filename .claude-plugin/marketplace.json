@@ -1,7 +1,7 @@
 {
   "name": "matthewtoghill-claude-plugins",
   "owner": { "name": "Matthew Toghill" },
-  "description": "Claude Code mods by Matthew Toghill: next-step suggestions, session file-change replay and on-demand test runs",
+  "description": "Claude Code mods by Matthew Toghill: next-step suggestions, session file-change replay, on-demand test runs and a prompt cache countdown",
   "plugins": [
     {
       "name": "next-steps",
@@ -17,6 +17,11 @@
       "name": "test-watch",
       "source": "./test-watch",
       "description": "A band above the prompt tracks files changed since the last test run; run the tests on demand and draft a fix prompt from the failures"
+    },
+    {
+      "name": "cache-clock",
+      "source": "./cache-clock",
+      "description": "A band above the prompt counts down each prompt cache's TTL, with hit rate and misses, and says what the next message re-caches once a cache goes cold"
     }
   ]
 }

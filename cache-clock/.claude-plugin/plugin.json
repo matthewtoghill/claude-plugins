@@ -1,0 +1,18 @@
+{
+  "name": "cache-clock",
+  "version": "0.1.1",
+  "description": "A band above the prompt counts down each prompt cache's TTL, with its hit rate and misses, and says what the next message re-caches once one goes cold",
+  "author": { "name": "Matthew Toghill" },
+  "homepage": "https://github.com/matthewtoghill/claude-plugins/tree/main/cache-clock",
+  "repository": "https://github.com/matthewtoghill/claude-plugins",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "ttl": {
+      "type": "string",
+      "title": "Cache TTL",
+      "description": "The prompt cache TTL to assume until one is seen. A cache that serves a hit more than 5 minutes after its last request is switched to 1h on its own.",
+      "options": ["5m", "1h"],
+      "default": "5m"
+    }
+  }
+}
