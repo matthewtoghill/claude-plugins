@@ -29,6 +29,8 @@ declare module 'claude-code' {
       ttlMs: number | null
       /** Closed with the band's x; the next response shows it again. */
       isHidden: boolean
+      /** The main cache is re-read before it expires until `until` (`$.clock.now()` ms); `option` is the dropdown's pick. */
+      keepWarm: { option: string; until: number } | null
     }
   }
 }

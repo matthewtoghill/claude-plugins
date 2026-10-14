@@ -10,6 +10,13 @@ const caches = atom({ plugin: 'cache-clock', key: 'caches' } as const, {})
 const labels = atom({ plugin: 'cache-clock', key: 'labels' } as const, {})
 const reportedTtl = atom({ plugin: 'cache-clock', key: 'ttlMs' } as const, null)
 const isHidden = atom({ plugin: 'cache-clock', key: 'isHidden' } as const, false)
+const keepWarm = atom({ plugin: 'cache-clock', key: 'keepWarm' } as const, null)
+
+const WARM_OPTIONS = [{ value: 'off' }, ...[1, 2, 3, 4, 5, 6].map(h => ({ value: `${h}h` }))]
+// Checked this often, so a failed ping is retried a few times inside the margin before the cache expires.
+const WARM_EVERY = 15 * 1000
+const WARM_MARGIN = MINUTE
+let isWarming = false
 
 let optionTtl: number = TTL_MS['5m']
 
@@ -33,7 +40,8 @@ function use(prev: Cache | undefined, u: TurnUsage, at: number, ttlMs: number): 
 async function track($: EngineInterface, agentId: string | undefined, u: TurnUsage, at: number) {
   const key = `${agentId ?? 'main'}:${u.model}`
   const label = agentId ? ((await read($, labels))[agentId] ?? 'Subagent') : 'Main'
-  const ttlMs = (await read($, reportedTtl)) ?? optionTtl
+  // The main thread's cache lives for 1h; the ttl option is for subagents'.
+  const ttlMs = agentId ? optionTtl : ((await read($, reportedTtl)) ?? TTL_MS['1h'])
   await update($, caches, all => ({
     ...all,
     [key]: { label, model: u.model, isSubagent: !!agentId, ...use(all[key], u, at, ttlMs) },
@@ -52,6 +60,35 @@ function ago(ms: number) {
 
 function tokens(n: number) {
   return n < 1000 ? `${n}` : `${(n / 1000).toFixed(1)}k`
+}
+
+/** The main thread's cache on the model it last used. */
+function latestMain(all: Record<string, Cache>) {
+  return Object.entries(all)
+    .filter(([, c]) => !c.isSubagent)
+    .sort(([, a], [, b]) => b.usedAt - a.usedAt)[0]
+}
+
+/** Re-reads the main thread's cache through a fork when it is about to expire and should stay warm. */
+async function warm($: EngineInterface) {
+  const w = await read($, keepWarm)
+  if (!w || isWarming) return
+  const now = await $.clock.now()
+  const main = latestMain(await read($, caches))
+  if (!main) return
+  const [key, c] = main
+  const expiresAt = c.usedAt + c.ttlMs
+  if (now >= w.until || expiresAt <= now || expiresAt - now > WARM_MARGIN || expiresAt >= w.until) return
+  isWarming = true
+  try {
+    const r = await $.model.fork({ prompt: 'Keep-alive ping to refresh the prompt cache. Reply with just: ok' })
+    // A fork that read nothing found the cache already gone; leave it cold.
+    if (r.isAnswered && r.usage.cache_read_input_tokens > 0) {
+      await update($, caches, all => (all[key] ? { ...all, [key]: { ...all[key], usedAt: now } } : all))
+    }
+  } finally {
+    isWarming = false
+  }
 }
 
 const ICONS = { green: '🟢', yellow: '🟡', red: '🔴' } as const
@@ -77,6 +114,7 @@ export const register: Register = (on, options) => {
 
   on('session.start', ($, e, next) => {
     $.clock.every(1000, () => $.ui.invalidate('ui.render'))
+    $.clock.every(WARM_EVERY, () => void warm($).catch(() => undefined))
     return next(e)
   })
 
@@ -112,8 +150,14 @@ export const register: Register = (on, options) => {
     const shown = Object.entries(await read($, caches)).filter(([, c]) => !c.isSubagent || c.usedAt + c.ttlMs > now)
     if (e.props.hasSurvey || shown.length === 0 || (await read($, isHidden))) return next(e)
 
-    const { Box, Button, Text } = $.ui.resolve(e)
+    const ui = $.ui.resolve(e)
+    const { Box, Button, Text } = ui
+    // The mobile app draws no Select.
+    const Select = 'Select' in ui ? ui.Select : undefined
     const plain = e.surface === 'terminal' || undefined
+    const warmKey = latestMain(Object.fromEntries(shown))?.[0]
+    const w = await read($, keepWarm)
+    const warmLeft = w ? w.until - now : 0
     const below = await next(e)
     return (
       <Box flexDirection="column">
@@ -122,7 +166,23 @@ export const register: Register = (on, options) => {
             {shown.map(([key, c]) => {
               const { text, color } = describe(c, now)
               // Terminals disagree on these emoji's width (Unicode 12), which shifts the line's repaints; a dot is one cell everywhere.
-              return <Text key={`cache-${key}`} color={color}>{plain ? '●' : ICONS[color]} {text}</Text>
+              const line = <Text key={`cache-${key}`} color={color}>{plain ? '●' : ICONS[color]} {text}{key === warmKey && warmLeft > 0 ? ` · kept warm ${ago(warmLeft)} more` : ''}</Text>
+              // Only the main thread's cache can be re-read by a fork.
+              if (key !== warmKey || !Select) return line
+              return (
+                <Box key={`row-${key}`} flexDirection="row" columnGap={1}>
+                  {line}
+                  <Select
+                    key="cache-warm"
+                    label="Keep warm"
+                    options={WARM_OPTIONS}
+                    value={warmLeft > 0 ? w!.option : 'off'}
+                    onSelect={value =>
+                      update($, keepWarm, () => (value === 'off' ? null : { option: value, until: now + Number.parseInt(value) * TTL_MS['1h'] }))
+                    }
+                  />
+                </Box>
+              )
             })}
           </Box>
           <Button key="cache-close" role="dismiss" plain={plain} dimColor label="x" onPress={() => update($, isHidden, () => true)} />

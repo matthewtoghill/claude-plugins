@@ -1,7 +1,7 @@
 {
   "name": "cache-clock",
-  "version": "0.1.1",
-  "description": "A band above the prompt counts down each prompt cache's TTL, with its hit rate and misses, and says what the next message re-caches once one goes cold",
+  "version": "0.2.0",
+  "description": "A band above the prompt counts down each prompt cache's TTL, with its hit rate and misses, says what the next message re-caches once one goes cold, and can keep the main cache warm for up to 6 hours",
   "author": { "name": "Matthew Toghill" },
   "homepage": "https://github.com/matthewtoghill/claude-plugins/tree/main/cache-clock",
   "repository": "https://github.com/matthewtoghill/claude-plugins",
@@ -9,8 +9,8 @@
   "userConfig": {
     "ttl": {
       "type": "string",
-      "title": "Cache TTL",
-      "description": "The prompt cache TTL to assume until one is seen. A cache that serves a hit more than 5 minutes after its last request is switched to 1h on its own.",
+      "title": "Subagent cache TTL",
+      "description": "The prompt cache TTL to assume for subagents until one is seen; the main thread's is assumed 1h. A cache that serves a hit more than 5 minutes after its last request is switched to 1h on its own.",
       "options": ["5m", "1h"],
       "default": "5m"
     }
